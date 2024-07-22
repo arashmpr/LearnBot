@@ -3,8 +3,7 @@ package main
 import (
 	"log"
 
-	"learnbot/src"
-
+	"learnbot/internal/bot"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
@@ -13,18 +12,18 @@ const UPDATE_TIMEOUT = 10
 const DEFAULT_RESPONSE = "Hello dear"
 
 func main() {
-	bot, err := tgbotapi.NewBotAPI(TELEGRAM_API_TOKEN)
+	tgbot, err := tgbotapi.NewBotAPI(TELEGRAM_API_TOKEN)
 	if err != nil {
 		log.Fatalf("Error creating bot: %v", err)
 	}
 
-	bot.Debug = true
-	log.Printf("Authorized username is %s", bot.Self.UserName)
+	tgbot.Debug = true
+	log.Printf("Authorized username is %s", tgbot.Self.UserName)
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = UPDATE_TIMEOUT
 
-	updates, err := bot.GetUpdatesChan(u)
+	updates, err := tgbot.GetUpdatesChan(u)
 	if err != nil {
 		log.Fatalf("Error getting updates: %v", err)
 	}
@@ -34,11 +33,6 @@ func main() {
 			continue
 		}
 		
-		resp := src.GetResponse(update.Message)
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, resp)
-			_, err := bot.Send(msg)
-			if err != nil {
-				log.Printf("Error sending message: %v", err)
-			}
+		bot.HandleCommand(tgbot, update.Message)
 	}
 }
